@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -10,6 +11,8 @@ from converters import (
     openai_to_claude_sdk_args,
 )
 from errors import error_response
+
+logger = logging.getLogger("aigateway")
 
 app = FastAPI()
 
