@@ -1,18 +1,15 @@
-# Go build artifacts
-*.exe
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-/aigateway
-/bin/
-/dist/
-
-# Go workspace / dependencies
-vendor/
-go.work
-go.work.sum
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
 
 # IDE / editor
 .idea/
