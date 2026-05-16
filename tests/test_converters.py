@@ -127,3 +127,21 @@ def test_claude_sdk_result_to_openai_partial_usage():
         "completion_tokens": 0,
         "total_tokens": 7,
     }
+
+
+def test_openai_to_claude_sdk_args_message_missing_role_raises():
+    body = {
+        "model": "claude-haiku-4-5-20251001",
+        "messages": [{"content": "hello"}],
+    }
+    with pytest.raises(ValueError, match="invalid message item"):
+        openai_to_claude_sdk_args(body)
+
+
+def test_openai_to_claude_sdk_args_message_not_dict_raises():
+    body = {
+        "model": "claude-haiku-4-5-20251001",
+        "messages": ["this is a string, not a dict"],
+    }
+    with pytest.raises(ValueError, match="invalid message item"):
+        openai_to_claude_sdk_args(body)

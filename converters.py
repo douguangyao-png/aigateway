@@ -6,6 +6,13 @@ def openai_to_claude_sdk_args(body: dict) -> dict:
     messages = body.get("messages")
     if not isinstance(messages, list) or len(messages) == 0:
         raise ValueError("messages must be a non-empty array")
+    for m in messages:
+        if not isinstance(m, dict):
+            raise ValueError("invalid message item")
+        if not isinstance(m.get("role"), str):
+            raise ValueError("invalid message item")
+        if not isinstance(m.get("content"), str):
+            raise ValueError("invalid message item")
     system_parts = [m["content"] for m in messages if m["role"] == "system"]
     convo = [m for m in messages if m["role"] in ("user", "assistant")]
     if not convo or convo[-1]["role"] != "user":

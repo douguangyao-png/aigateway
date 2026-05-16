@@ -60,3 +60,5 @@ untested.
 - Per-request agent context overhead is ~25k cached tokens (Claude Code
   agent system prompt). First call latency ~10–15s.
 - No auth. Bind to localhost or a trusted network only.
+- Rate-limit responses from the Claude subscription quota are returned
+  as `502 upstream_error` (no dedicated 429 mapping in MVP).

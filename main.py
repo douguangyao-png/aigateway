@@ -62,3 +62,13 @@ async def chat_completions(request: Request):
         return error_response(f"claude sdk error: {exc}", "upstream_error", 502)
 
     return claude_sdk_result_to_openai(text=text, usage=usage, model=args["model"])
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", "8090")),
+    )
