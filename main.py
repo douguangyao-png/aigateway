@@ -1,6 +1,8 @@
 import json
+from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
 
 from claude_client import call_claude, ClaudeError
 from converters import (
@@ -10,6 +12,13 @@ from converters import (
 from errors import error_response
 
 app = FastAPI()
+
+STATIC_DIR = Path(__file__).parent / "static"
+
+
+@app.get("/")
+async def root():
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.post("/v1/chat/completions")

@@ -128,3 +128,15 @@ def test_generic_sdk_exception_returns_502(monkeypatch):
     body = resp.json()
     assert body["error"]["type"] == "upstream_error"
     assert "subprocess died" in body["error"]["message"]
+
+
+def test_root_serves_html(client):
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+    text = resp.text
+    assert "AI Gateway" in text
+    assert "claude-haiku-4-5-20251001" in text
+    assert "claude-sonnet-4-6" in text
+    assert "claude-opus-4-7" in text
+    assert "<textarea" in text

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>AI Gateway 试用</title>
+<style>
+  :root { color-scheme: light; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    max-width: 760px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    color: #1a1a1a;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1rem; }
+  label { display: block; margin: 0.5rem 0 0.25rem; font-weight: 600; }
+  select, textarea, button {
+    font: inherit;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.5rem;
+    box-sizing: border-box;
+  }
+  select { width: 100%; }
+  textarea { width: 100%; min-height: 8rem; resize: vertical; }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+  }
+  button:disabled { background: #9ca3af; cursor: not-allowed; }
+  .panel {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    white-space: pre-wrap;
+    min-height: 4rem;
+  }
+  .meta { font-size: 0.85rem; color: #555; margin-top: 0.5rem; }
+  .error { color: #b91c1c; }
+</style>
+</head>
+<body>
+  <h1>AI Gateway 试用</h1>
+
+  <label for="model">模型</label>
+  <select id="model">
+    <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001</option>
+    <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+    <option value="claude-opus-4-7">claude-opus-4-7</option>
+  </select>
+
+  <label for="prompt">提问</label>
+  <textarea id="prompt" placeholder="输入你的问题…"></textarea>
+
+  <button id="send">发送</button>
+
+  <label>回复</label>
+  <div id="output" class="panel"></div>
+  <div id="meta" class="meta"></div>
+
+<script>
+const sendBtn = document.getElementById("send");
+const out = document.getElementById("output");
+const meta = document.getElementById("meta");
+
+sendBtn.addEventListener("click", async () => {
+  const model = document.getElementById("model").value;
+  const promptText = document.getElementById("prompt").value.trim();
+  if (!promptText) return;
+
+  sendBtn.disabled = true;
+  out.classList.remove("error");
+  out.textContent = "…思考中";
+  meta.textContent = "";
+
+  const t0 = performance.now();
+  try {
+    const resp = await fetch("/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: promptText }],
+      }),
+    });
+    const data = await resp.json();
+    const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+
+    if (!resp.ok) {
+      out.classList.add("error");
+      out.textContent = data.error?.message || `HTTP ${resp.status}`;
+      meta.textContent = `耗时 ${elapsed}s`;
+      return;
+    }
+
+    out.textContent = data.choices?.[0]?.message?.content || "(empty response)";
+    const u = data.usage || {};
+    meta.textContent =
+      `用量: prompt=${u.prompt_tokens ?? 0}  ` +
+      `completion=${u.completion_tokens ?? 0}  ` +
+      `total=${u.total_tokens ?? 0}   |   耗时 ${elapsed}s`;
+  } catch (err) {
+    out.classList.add("error");
+    out.textContent = String(err);
+  } finally {
+    sendBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
