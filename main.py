@@ -1,3 +1,5 @@
+import json
+
 from fastapi import FastAPI, Request
 
 from claude_client import call_claude
@@ -12,8 +14,33 @@ app = FastAPI()
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: Request):
-    body = await request.json()
-    args = openai_to_claude_sdk_args(body)
+    raw = await request.body()
+    try:
+        body = json.loads(raw)
+    except json.JSONDecodeError:
+        return error_response("invalid request body", "invalid_request_error", 400)
+
+    if not isinstance(body, dict):
+        return error_response("invalid request body", "invalid_request_error", 400)
+
+    if body.get("stream"):
+        return error_response(
+            "streaming not supported in MVP", "invalid_request_error", 400
+        )
+
+    model = body.get("model")
+    if not isinstance(model, str):
+        return error_response("model is required", "invalid_request_error", 400)
+    if not model.startswith("claude-"):
+        return error_response(
+            f"unsupported model: {model}", "invalid_request_error", 400
+        )
+
+    try:
+        args = openai_to_claude_sdk_args(body)
+    except ValueError as exc:
+        return error_response(str(exc), "invalid_request_error", 400)
+
     text, usage = await call_claude(
         prompt=args["prompt"],
         system_prompt=args["system_prompt"],

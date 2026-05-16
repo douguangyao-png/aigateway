@@ -31,3 +31,57 @@ def test_chat_completion_happy_path(client):
         "completion_tokens": 2,
         "total_tokens": 6,
     }
+
+
+def test_rejects_stream_true(client):
+    resp = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "claude-haiku-4-5-20251001",
+            "stream": True,
+            "messages": [{"role": "user", "content": "hi"}],
+        },
+    )
+    assert resp.status_code == 400
+    body = resp.json()
+    assert body["error"]["type"] == "invalid_request_error"
+    assert "streaming" in body["error"]["message"]
+
+
+def test_rejects_unsupported_model(client):
+    resp = client.post(
+        "/v1/chat/completions",
+        json={"model": "gpt-4o", "messages": [{"role": "user", "content": "hi"}]},
+    )
+    assert resp.status_code == 400
+    body = resp.json()
+    assert body["error"]["type"] == "invalid_request_error"
+    assert "unsupported model" in body["error"]["message"]
+
+
+def test_rejects_missing_model(client):
+    resp = client.post(
+        "/v1/chat/completions",
+        json={"messages": [{"role": "user", "content": "hi"}]},
+    )
+    assert resp.status_code == 400
+
+
+def test_rejects_invalid_messages(client):
+    resp = client.post(
+        "/v1/chat/completions",
+        json={"model": "claude-haiku-4-5-20251001", "messages": []},
+    )
+    assert resp.status_code == 400
+    body = resp.json()
+    assert "messages must be a non-empty array" in body["error"]["message"]
+
+
+def test_rejects_non_json_body(client):
+    resp = client.post(
+        "/v1/chat/completions",
+        content=b"not json",
+        headers={"Content-Type": "application/json"},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["error"]["message"] == "invalid request body"
