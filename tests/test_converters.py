@@ -75,3 +75,55 @@ def test_openai_to_claude_sdk_args_only_system_raises():
     }
     with pytest.raises(ValueError, match="last message must be role=user"):
         openai_to_claude_sdk_args(body)
+
+
+def test_claude_sdk_result_to_openai_basic():
+    from converters import claude_sdk_result_to_openai
+
+    result = claude_sdk_result_to_openai(
+        text="Hello there",
+        usage={"input_tokens": 10, "output_tokens": 5},
+        model="claude-haiku-4-5-20251001",
+    )
+    assert result["object"] == "chat.completion"
+    assert result["model"] == "claude-haiku-4-5-20251001"
+    assert result["id"].startswith("chatcmpl-")
+    assert isinstance(result["created"], int)
+    assert result["choices"] == [
+        {
+            "index": 0,
+            "message": {"role": "assistant", "content": "Hello there"},
+            "finish_reason": "stop",
+        }
+    ]
+    assert result["usage"] == {
+        "prompt_tokens": 10,
+        "completion_tokens": 5,
+        "total_tokens": 15,
+    }
+
+
+def test_claude_sdk_result_to_openai_missing_usage():
+    from converters import claude_sdk_result_to_openai
+
+    result = claude_sdk_result_to_openai(text="x", usage=None, model="claude-opus-4-7")
+    assert result["usage"] == {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+    }
+
+
+def test_claude_sdk_result_to_openai_partial_usage():
+    from converters import claude_sdk_result_to_openai
+
+    result = claude_sdk_result_to_openai(
+        text="x",
+        usage={"input_tokens": 7},
+        model="claude-haiku-4-5-20251001",
+    )
+    assert result["usage"] == {
+        "prompt_tokens": 7,
+        "completion_tokens": 0,
+        "total_tokens": 7,
+    }
