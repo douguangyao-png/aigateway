@@ -85,3 +85,46 @@ def test_rejects_non_json_body(client):
     )
     assert resp.status_code == 400
     assert resp.json()["error"]["message"] == "invalid request body"
+
+
+def test_claude_error_returns_502(monkeypatch):
+    import main
+    from claude_client import ClaudeError
+
+    async def fake_call_claude(prompt, system_prompt, model):
+        raise ClaudeError("oauth expired")
+
+    monkeypatch.setattr(main, "call_claude", fake_call_claude)
+    c = TestClient(main.app)
+    resp = c.post(
+        "/v1/chat/completions",
+        json={
+            "model": "claude-haiku-4-5-20251001",
+            "messages": [{"role": "user", "content": "hi"}],
+        },
+    )
+    assert resp.status_code == 502
+    body = resp.json()
+    assert body["error"]["type"] == "upstream_error"
+    assert "oauth expired" in body["error"]["message"]
+
+
+def test_generic_sdk_exception_returns_502(monkeypatch):
+    import main
+
+    async def fake_call_claude(prompt, system_prompt, model):
+        raise RuntimeError("subprocess died")
+
+    monkeypatch.setattr(main, "call_claude", fake_call_claude)
+    c = TestClient(main.app)
+    resp = c.post(
+        "/v1/chat/completions",
+        json={
+            "model": "claude-haiku-4-5-20251001",
+            "messages": [{"role": "user", "content": "hi"}],
+        },
+    )
+    assert resp.status_code == 502
+    body = resp.json()
+    assert body["error"]["type"] == "upstream_error"
+    assert "subprocess died" in body["error"]["message"]

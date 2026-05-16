@@ -2,7 +2,7 @@ import json
 
 from fastapi import FastAPI, Request
 
-from claude_client import call_claude
+from claude_client import call_claude, ClaudeError
 from converters import (
     claude_sdk_result_to_openai,
     openai_to_claude_sdk_args,
@@ -41,9 +41,15 @@ async def chat_completions(request: Request):
     except ValueError as exc:
         return error_response(str(exc), "invalid_request_error", 400)
 
-    text, usage = await call_claude(
-        prompt=args["prompt"],
-        system_prompt=args["system_prompt"],
-        model=args["model"],
-    )
+    try:
+        text, usage = await call_claude(
+            prompt=args["prompt"],
+            system_prompt=args["system_prompt"],
+            model=args["model"],
+        )
+    except ClaudeError as exc:
+        return error_response(f"claude error: {exc}", "upstream_error", 502)
+    except Exception as exc:
+        return error_response(f"claude sdk error: {exc}", "upstream_error", 502)
+
     return claude_sdk_result_to_openai(text=text, usage=usage, model=args["model"])
