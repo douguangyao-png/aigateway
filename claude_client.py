@@ -19,7 +19,7 @@ async def call_claude(
     options = ClaudeAgentOptions(
         model=model,
         system_prompt=system_prompt,
-        max_turns=1,
+        max_turns=6,
         allowed_tools=[],
         permission_mode="default",
         setting_sources=None,
