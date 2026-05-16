@@ -101,7 +101,7 @@ Python 版本：`>=3.11`（实测在 3.11 venv 中工作正常）。
 
 | 变量 | 必需 | 默认值 | 说明 |
 |---|---|---|---|
-| `PORT` | 否 | `8080` | 监听端口 |
+| `PORT` | 否 | `8090` | 监听端口 |
 
 启动时不检测 Claude Code 登录状态；运行时调用失败按错误表返回。
 
@@ -274,15 +274,15 @@ FastAPI 异步 handler。SDK 调用用 `await`/`async for`。MVP 不做并发限
 
 ```bash
 # 启动
-uvicorn main:app --port 8080
+uvicorn main:app --port 8090
 
 # API 路径
-curl -s http://localhost:8080/v1/chat/completions \
+curl -s http://localhost:8090/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"claude-haiku-4-5-20251001","messages":[{"role":"user","content":"say hi"}]}'
 
 # 浏览器试用页
-open http://localhost:8080/
+open http://localhost:8090/
 ```
 
 ## 成功标准
@@ -290,7 +290,7 @@ open http://localhost:8080/
 1. `pip install -r requirements.txt` 成功
 2. `pytest` 全部通过
 3. 宿主机 `claude` 已登录后，API curl 返回 200 + 合理回答，响应体是 OpenAI ChatCompletion 形状，usage 字段有真实值
-4. 浏览器访问 `http://localhost:8080/`：能选模型、输入问题、看到回复和 token 用量
+4. 浏览器访问 `http://localhost:8090/`：能选模型、输入问题、看到回复和 token 用量
 5. `stream=true` / 非 claude- model / 末条非 user 各类错误响应符合上表
 6. Python 业务代码 ≤ 400 行（不含测试和 HTML）；HTML ≤ 200 行
 
