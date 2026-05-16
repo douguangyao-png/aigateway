@@ -1,0 +1,36 @@
+# Go build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/aigateway
+/bin/
+/dist/
+
+# Go workspace / dependencies
+vendor/
+go.work
+go.work.sum
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Env / secrets
+.env
+.env.*
+configs/config.local.yaml
+
+# Tool-generated local state
+.pair-programming-session.md
+.todos-report.md
+.plugin-config/
